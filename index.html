@@ -23,10 +23,26 @@
         captureButton.addEventListener("click", function(e) {
             // Accede a la cámara mediante la API de MediaDevices
             e.preventDefault()
-            navigator.mediaDevices.getUserMedia({
-                    video: true
-                })
-                .then(function(stream) {
+            navigator.mediaDevices.enumerateDevices()
+                .then(function(devices) {
+                    var videoDevices = devices.filter(function(device) {
+                        return device.kind === 'videoinput';
+                    });
+
+                    var mainCamera = videoDevices.find(function(device) {
+                        return device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear');
+                    });
+
+                    var constraints = {
+                        video: {
+                            deviceId: mainCamera ? {
+                                exact: mainCamera.deviceId
+                            } : undefined
+                        }
+                    };
+
+                    return navigator.mediaDevices.getUserMedia(constraints);
+                }).then(function(stream) {
                     // Muestra la vista previa de la cámara en un elemento de video
                     var video = document.createElement("video");
                     video.srcObject = stream;
