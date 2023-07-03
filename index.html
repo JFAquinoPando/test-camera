@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form id="myForm">
+        <label for="test">Hola</label>
+        <input type="text" id="test">
+        <button id="captureButton">Capturar foto</button>
+        <img id="photoPreview" alt="Foto capturada">
+    </form>
+
+    <script>
+        var captureButton = document.getElementById("captureButton");
+        var photoPreview = document.getElementById("photoPreview");
+
+        captureButton.addEventListener("click", function(e) {
+            // Accede a la cámara mediante la API de MediaDevices
+            e.preventDefault()
+            navigator.mediaDevices.getUserMedia({
+                    video: true
+                })
+                .then(function(stream) {
+                    // Muestra la vista previa de la cámara en un elemento de video
+                    var video = document.createElement("video");
+                    video.srcObject = stream;
+                    video.autoplay = true;
+                    video.onloadedmetadata = function() {
+                        // Cuando se haya cargado la metadata del video, captura un fotograma como imagen
+                        var canvas = document.createElement("canvas");
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+                        var photoURL = canvas.toDataURL("image/jpeg");
+
+                        // Muestra la foto capturada en un elemento de imagen
+                        photoPreview.src = photoURL;
+
+                        // Opcional: Guarda la foto capturada en el LocalStorage
+                        localStorage.setItem("capturedPhoto", photoURL);
+
+                        // Detiene la transmisión de video y libera los recursos de la cámara
+                        stream.getTracks().forEach(function(track) {
+                            track.stop();
+                        });
+                    };
+                })
+                .catch(function(error) {
+                    console.error("Error al acceder a la cámara: " + error);
+                });
+        });
+    </script>
+</body>
+
+</html>
